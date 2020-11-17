@@ -98,5 +98,5 @@ def main(wlen=80, nw=20, node_data_size=None, fname=None):
     with open(fname, 'w+') as f:
         f.write(outstr)
 
-main(wlen=5, nw=1, fname='cora_no_data.din')
+main(fname='cora_no_data.din')
 main(wlen=5, nw=1, fname='cora_w_data.din', node_data_size=256)
