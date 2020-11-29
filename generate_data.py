@@ -4,7 +4,8 @@ import sys
 from torch_geometric.utils import degree
 
 sys.path.insert(0, '/mnt/raid0_24TB/isaiah/code/GRL')
-import load_graphs, rl_module
+import rl_module
+import load_graphs as lg
 
 def generate_walks(Agent):
     non_orphans = (degree(Agent.data.edge_index[0], num_nodes=Agent.data.num_nodes) > 1).nonzero()
@@ -13,8 +14,8 @@ def generate_walks(Agent):
     walks = Agent.generate_walks(non_orphans, strings=False)
     return walks.flatten().numpy()
 
-def prep_agent(wlen, nw):
-    data = load_graphs.load_cora()
+def prep_agent(wlen, nw, loader=lg.load_cora):
+    data = loader()
 
     Agent = rl_module.Q_Walker(data, episode_len=wlen, num_walks=nw)
     Agent.remove_direction()
@@ -81,8 +82,8 @@ def translate_to_din(walks, mem_info, node_data_size):
 Makes dinero trace from generated random walks
 uses -informat d 
 '''
-def main(wlen=80, nw=20, node_data_size=None, fname=None):
-    a = prep_agent(wlen, nw)
+def main(loader=lg.load_cora, wlen=5, nw=1, node_data_size=None, fname=None):
+    a = prep_agent(wlen, nw, loader=loader)
     mi = build_mem_info(a)
     w = generate_walks(a)
     accesses = translate_to_din(w, mi, node_data_size)
@@ -98,5 +99,9 @@ def main(wlen=80, nw=20, node_data_size=None, fname=None):
     with open(fname, 'w+') as f:
         f.write(outstr)
 
+'''
 main(fname='cora_no_data.din')
-main(wlen=5, nw=1, fname='cora_w_data.din', node_data_size=256)
+main(fname='cora_w_data.din', node_data_size=256)
+'''
+main(fname='citeseer_no_data.din', wlen=5, nw=1, loader=lg.load_citeseer)
+#main(fname='citeseer_w_data.din', loader=lg.load_citeseer, node_data_size=256)
